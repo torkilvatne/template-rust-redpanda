@@ -1,0 +1,7 @@
+target/
+Cargo.lock
+.git/
+.gitignore
+README.md
+TEMPLATE_USAGE.md
+test-template.sh

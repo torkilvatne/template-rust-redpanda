@@ -1,0 +1,52 @@
+[template]
+cargo_generate_version = ">=0.10.0"
+init = true
+ignore = [
+    "cargo-generate.toml",
+    "target/**",
+    "target/",
+    ".cargo-ok",
+    "Cargo.lock",
+    "**/.DS_Store",
+    "TEMPLATE_README.md",
+    "test.sh",
+]
+
+[placeholders]
+server_port = { type = "string", prompt = "What port should the server run on?", default = "3000" }
+project_description = { type = "string", prompt = "Brief description of your project", default = "A Rust application with Redpanda integration" }
+
+[binary]
+extensions = [
+    "bin",
+    "woff",
+    "woff2",
+    "ttf",
+    "otf",
+    "eot",
+    "jpg",
+    "jpeg",
+    "png",
+    "gif",
+    "svg",
+    "ico",
+    "mp4",
+    "webm",
+    "ogg",
+    "mp3",
+    "wav",
+    "pdf",
+    "zip",
+    "tar",
+    "gz",
+    "lock",
+]
+
+paths = [
+    "**/.fingerprint/**/*",
+    "**/incremental/**/*",
+    "**/deps/**/*",
+    "target/**/*",
+    "target",
+    "**/.DS_Store",
+]
