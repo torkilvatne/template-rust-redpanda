@@ -5,10 +5,13 @@ use axum::{
     http::StatusCode,
     response::IntoResponse,
 };
-use tracing::{debug, error};
+use tracing::{debug, info, error};
 
-pub async fn send_message(Json(event): Json<Event>) -> impl IntoResponse {
-    debug!("Send message endpoint called with payload: {:?}", event);
+pub async fn checkout_order(Json(event): Json<Event>) -> impl IntoResponse {
+    debug!("Checkout order endpoint called with payload: {:?}", event);
+
+    info!("Validating order payload and other things...");
+    
     
     let redpanda_client = RedpandaClient::new();
 
@@ -19,7 +22,7 @@ pub async fn send_message(Json(event): Json<Event>) -> impl IntoResponse {
                 message: "Message sent successfully".to_string(),
                 data: Some(serde_json::json!({ "topic": topic_str })),
             };
-            debug!("Send message response: {:?}", response);
+            debug!("Checkout order response: {:?}", response);
             (StatusCode::OK, Json(response))
         },
         Err(e) => {

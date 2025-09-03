@@ -1,10 +1,10 @@
 //! Event processor for managing event handlers and consumer setup
 
 use std::sync::Arc;
-use crate::shared::{EventType, EventHandlerRegistry};
+use crate::shared::{Topic, EventHandlerRegistry, EventHandler, Event};
 use crate::infrastructure::{RedpandaClient};
-use crate::domains::{BoundedContext1EventContextBuilder, BoundedContext2EventContextBuilder};
-use tracing::{info, error};
+use crate::domains::{OrderEventContextBuilder, LogisticsEventContextBuilder};
+use tracing::{info};
 
 /// Event processor that manages event handlers and consumer setup
 pub struct EventProcessor {
@@ -18,13 +18,16 @@ impl EventProcessor {
         let redpanda_client = Arc::new(RedpandaClient::new());
         let mut handler_registry = EventHandlerRegistry::new();
         
-        // Initialize domains with shared Redpanda client
-        let (topic1, event_handlers_1) = BoundedContext1EventContextBuilder::new().build();
-        let (topic2, event_handlers_2) = BoundedContext2EventContextBuilder::new().build();
-        
-        // TODO: Fix this!
-        handler_registry.register_handler(topic1, event_handlers_1);
-        handler_registry.register_handler(topic2, event_handlers_2);
+        // Initialize domains and gather handlers
+        let order_handlers: Vec<(Topic, EventHandler)> = OrderEventContextBuilder::new().build();
+        let logistics_handlers: Vec<(Topic, EventHandler)> = LogisticsEventContextBuilder::new().build();
+
+        for (event_type, handler) in order_handlers.into_iter() {
+            handler_registry.register_handler(event_type, handler);
+        }
+        for (event_type, handler) in logistics_handlers.into_iter() {
+            handler_registry.register_handler(event_type, handler);
+        }
 
         Self {
             redpanda_client,
@@ -34,16 +37,22 @@ impl EventProcessor {
 
     /// Start consuming events from all configured event types
     pub async fn start_consumers(&self) -> Result<(), String> {
-        let default_event_types = EventType::all();
-        
-        if let Err(e) = self.redpanda_client.start_multi_event_consumer(
-            default_event_types, 
-            self.handler_registry.clone()
-        ).await {
-            error!("Failed to start continuous consumers: {}", e);
-            return Err(e);
+        for event_type in Topic::all().into_iter() {
+            if let Some(handlers) = self.handler_registry.get_handlers(&event_type) {
+                let fan_out = {
+                    let handlers = handlers.clone();
+                    Arc::new(move |event: &Event| {
+                        for h in &handlers {
+                            h(event);
+                        }
+                    }) as EventHandler
+                };
+                self.redpanda_client.start_event_consumer(event_type, Some(fan_out)).await?;
+            } else {
+                // No handlers registered for this topic; still start with None or skip
+                self.redpanda_client.start_event_consumer(event_type, None).await?;
+            }
         }
-        
         info!("Continuous consumers started successfully");
         Ok(())
     }

@@ -3,69 +3,71 @@ use std::sync::Arc;
 use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 
+// Topics
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub enum Topic {
+    Order,
+    Logistics,
+}
+
+impl Topic {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Topic::Order => "order",
+            Topic::Logistics => "logistics",
+        }
+    }
+
+    pub fn all() -> Vec<Topic> {
+        vec![
+            Topic::Order,
+            Topic::Logistics,
+        ]
+    }
+}
+
+impl std::fmt::Display for Topic {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
+
+// Events
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Event {
     pub id: String,
     pub timestamp: DateTime<Utc>,
-    pub event_type: EventType,
+    pub event_type: Topic,
     pub payload: EventPayload,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum EventPayload {
-    BoundedContext1Event(BoundedContext1Event),
-    BoundedContext2Event(BoundedContext2Event),
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub enum EventType {
-    BoundedContext1,
-    BoundedContext2,
-}
-
-impl EventType {
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            EventType::BoundedContext1 => "bounded-context-1",
-            EventType::BoundedContext2 => "bounded-context-2",
-        }
-    }
-
-    pub fn all() -> Vec<EventType> {
-        vec![
-            EventType::BoundedContext1,
-            EventType::BoundedContext2,
-        ]
-    }
-}
-
-impl std::fmt::Display for EventType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.as_str())
-    }
+    OrderEvent(OrderEvent),
+    LogisticsEvent(LogisticsEvent),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BoundedContext1Event {
-    pub action: BoundedContext1Actions,
+pub struct OrderEvent {
+    pub action: OrderActions,
     pub message: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BoundedContext2Event {
-    pub action: BoundedContext2Actions,
+pub struct LogisticsEvent {
+    pub action: LogisticsActions,
     pub message: String,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub enum BoundedContext1Actions {
+pub enum OrderActions {
     Created,
     Updated,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub enum BoundedContext2Actions {
+pub enum LogisticsActions {
     Created,
     Updated,
 }
@@ -75,23 +77,21 @@ pub type EventHandler = Arc<dyn Fn(&Event) + Send + Sync>;
 
 #[derive(Clone)]
 pub struct EventHandlerRegistry {
-    handlers: Arc<HashMap<EventType, EventHandler>>,
+    handlers: Arc<HashMap<Topic, Vec<EventHandler>>>,
 }
 
 impl EventHandlerRegistry {
     pub fn new() -> Self {
-        Self {
-            handlers: Arc::new(HashMap::new()),
-        }
+        Self { handlers: Arc::new(HashMap::new()) }
     }
 
-    pub fn register_handler(&mut self, event_type: EventType, handler: EventHandler) {
+    pub fn register_handler(&mut self, event_type: Topic, handler: EventHandler) {
         let mut handlers = HashMap::clone(&self.handlers);
-        handlers.insert(event_type, handler);
+        handlers.entry(event_type).or_insert_with(Vec::new).push(handler);
         self.handlers = Arc::new(handlers);
     }
 
-    pub fn get_handler(&self, event_type: &EventType) -> Option<&EventHandler> {
+    pub fn get_handlers(&self, event_type: &Topic) -> Option<&Vec<EventHandler>> {
         self.handlers.get(event_type)
     }
 }

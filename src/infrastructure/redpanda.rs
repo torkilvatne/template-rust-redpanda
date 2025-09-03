@@ -1,4 +1,4 @@
-use crate::shared::models::{Event, EventType, EventHandlerRegistry, EventHandler};
+use crate::shared::models::{Event, Topic, EventHandler};
 use crate::config::Config;
 use rdkafka::{
     config::ClientConfig,
@@ -47,7 +47,7 @@ impl RedpandaClient {
         }
     }
 
-    pub async fn start_event_consumer(&self, event_type: EventType, handler: Option<EventHandler>) -> Result<(), String> {
+    pub async fn start_event_consumer(&self, event_type: Topic, handler: Option<EventHandler>) -> Result<(), String> {
         let topic_str = event_type.as_str();
         debug!("Starting event consumer for event type: {}", topic_str);
 
@@ -64,7 +64,7 @@ impl RedpandaClient {
         Ok(())
     }
 
-    async fn run_event_consumer(brokers: &str, event_type: &EventType, handler: Option<EventHandler>) -> Result<(), String> {
+    async fn run_event_consumer(brokers: &str, event_type: &Topic, handler: Option<EventHandler>) -> Result<(), String> {
         let topic_str = event_type.as_str();
 
         let consumer: StreamConsumer = ClientConfig::new()
@@ -127,19 +127,5 @@ impl RedpandaClient {
         }
     }
 
-    pub async fn start_multi_event_consumer(&self, event_types: Vec<EventType>, handler_registry: EventHandlerRegistry) -> Result<(), String> {
-        let event_types_count = event_types.len();
-        debug!("Starting event consumers for {} event types", event_types_count);
-
-        for event_type in event_types {
-            // Get the handler for this event type from the registry
-            let handler = handler_registry.get_handler(&event_type).cloned();
-
-            self.start_event_consumer(event_type, handler).await?;
-        }
-
-        info!("Started event consumers for {} event types", event_types_count);
-        Ok(())
-    }
 }
 
