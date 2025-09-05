@@ -22,7 +22,11 @@ A Rust application with Redpanda integration featuring multi-topic event streami
 
 1. **Start all services:**
    ```bash
-   docker compose up -d
+   just run
+   ```
+   or
+   ```bash
+   docker compose up -d && cargo run
    ```
 
 2. **Check service status:**
@@ -75,12 +79,18 @@ The application automatically starts continuous consumers for these topics:
 - **Redpanda Kafka API**: localhost:9093
 
 ## Stopping Services
+**Stop all services**
 
 ```bash
-# Stop all services
+just stop
+```
+or
+```bash
 docker compose down
+```
 
-# Stop and remove volumes (WARNING: deletes all data)
+**Stop and remove volumes (WARNING: deletes all data)**
+```
 docker compose down -v
 ```
 
