@@ -16,29 +16,23 @@ This document demonstrates how to use the multi-topic functionality in the Rust 
 ### Send events to different topics
 
 ```bash
-# Send to bounded-context-1 topic
+# Send to order topic
 curl -X POST http://localhost:{{server_port}}/send \
   -H "Content-Type: application/json" \
-  -d '{"id": "123", "timestamp": "2024-01-01T00:00:00Z", "event_type": "BoundedContext1", "payload": {"type": "BoundedContext1Event", "action": "Created", "message": "User login successful"}}'
+  -d '{"id": "123", "timestamp": "2024-01-01T00:00:00Z", "event_type": "order", "payload": {"type": "OrderEvent", "action": "Created", "message": "Order created"}}'
 
-# Send to bounded-context-2 topic
+# Send to logistics topic
 curl -X POST http://localhost:{{server_port}}/send \
   -H "Content-Type: application/json" \
-  -d '{"id": "124", "timestamp": "2024-01-01T00:00:01Z", "event_type": "BoundedContext2", "payload": {"type": "BoundedContext2Event", "action": "Created", "message": "Application startup complete"}}'
+  -d '{"id": "124", "timestamp": "2024-01-01T00:00:01Z", "event_type": "logistics", "payload": {"type": "LogisticsEvent", "action": "Created", "message": "Shipment created"}}'
 ```
 
-### Check server health
+### Use domain-specific endpoint
 
 ```bash
-curl http://localhost:{{server_port}}/health
-```
-
-Expected response:
-```json
-{
-  "message": "Server is healthy",
-  "data": null
-}
+curl -X POST http://localhost:{{server_port}}/order \
+  -H "Content-Type: application/json" \
+  -d '{"id": "200", "timestamp": "2024-01-01T00:00:05Z", "event_type": "order", "payload": {"type": "OrderEvent", "action": "Created", "message": "Checkout initiated"}}'
 ```
 
 ## Example 2: Real-World Scenario
@@ -46,27 +40,27 @@ Expected response:
 ### Simulate a microservices architecture
 
 ```bash
-# Service A: User Service - sends user events
+# Service A: Order Service - sends order events
 curl -X POST http://localhost:{{server_port}}/send \
   -H "Content-Type: application/json" \
-  -d '{"id": "125", "timestamp": "2024-01-01T00:00:02Z", "event_type": "BoundedContext1", "payload": {"type": "BoundedContext1Event", "action": "Created", "message": "User created: john.doe@example.com"}}'
+  -d '{"id": "125", "timestamp": "2024-01-01T00:00:02Z", "event_type": "order", "payload": {"type": "OrderEvent", "action": "Created", "message": "Order #1001 created"}}'
 
-# Service B: Notification Service - sends notifications
+# Service B: Logistics Service - sends logistics events
 curl -X POST http://localhost:{{server_port}}/send \
   -H "Content-Type: application/json" \
-  -d '{"id": "126", "timestamp": "2024-01-01T00:00:03Z", "event_type": "BoundedContext2", "payload": {"type": "BoundedContext2Event", "action": "Created", "message": "Welcome email sent to john.doe@example.com"}}'
+  -d '{"id": "126", "timestamp": "2024-01-01T00:00:03Z", "event_type": "logistics", "payload": {"type": "LogisticsEvent", "action": "Created", "message": "Shipment created for order #1001"}}'
 
 # Service C: Analytics Service - sends metrics
 curl -X POST http://localhost:{{server_port}}/send \
   -H "Content-Type: application/json" \
-  -d '{"id": "127", "timestamp": "2024-01-01T00:00:04Z", "event_type": "BoundedContext2", "payload": {"type": "BoundedContext2Event", "action": "Created", "message": "User registration metric: +1"}}'
+  -d '{"id": "127", "timestamp": "2024-01-01T00:00:04Z", "event_type": "logistics", "payload": {"type": "LogisticsEvent", "action": "Created", "message": "Order #1001 metric: shipped"}}'
 ```
 
 ## Example 3: Continuous Message Consumption
 
 The application automatically starts continuous consumers for the following topics:
-- `bounded-context-1`
-- `bounded-context-2`
+- `order`
+- `logistics`
 
 Events sent to these topics will be consumed continuously in the background. Check the server logs to see consumed events:
 
@@ -95,9 +89,9 @@ All events follow this structure:
 {
   "id": "unique-event-id",
   "timestamp": "ISO-8601-timestamp",
-  "event_type": "BoundedContext1|BoundedContext2",
+  "event_type": "order|logistics",
   "payload": {
-    "type": "BoundedContext1Event|BoundedContext2Event",
+    "type": "OrderEvent|LogisticsEvent",
     "action": "Created|Updated",
     "message": "Event description"
   }
@@ -106,16 +100,16 @@ All events follow this structure:
 
 ## Event Actions
 
-### BoundedContext1 Actions
-- `Created`: User or business entity creation events
-- `Updated`: User or business entity update events
+### Order Actions
+- `Created`: Order creation events
+- `Updated`: Order update events
 
-### BoundedContext2 Actions
-- `Created`: Application or system creation events
-- `Updated`: Application or system update events
+### Logistics Actions
+- `Created`: Logistics creation events
+- `Updated`: Logistics update events
 
 ## Follow-up Events
 
 The application demonstrates event chaining where processing one event can trigger another:
-- When a `BoundedContext1` event is processed, it may trigger a `BoundedContext2` event
-- This shows how different bounded contexts can interact through events
+- When an `Order` event is processed, it may trigger a `Logistics` event
+- This shows how different domains can interact through events

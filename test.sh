@@ -6,32 +6,34 @@ echo "========================================"
 
 BASE_URL="http://localhost:{{server_port}}"
 
-# Health check
-echo -e "\n1. Health Check:"
-curl -s "$BASE_URL/health" | jq '.'
+# Domain endpoint
+echo -e "\n1. Order Endpoint:"
+curl -s -X POST "$BASE_URL/order" \
+  -H "Content-Type: application/json" \
+  -d '{"id": "200", "timestamp": "2024-01-01T00:00:05Z", "event_type": "order", "payload": {"type": "OrderEvent", "action": "Created", "message": "Checkout initiated"}}' | jq '.'
 
 # Send events to different topics
 echo -e "\n2. Sending Events to Different Topics:"
 
-echo -e "\n   Sending to 'bounded-context-1' topic:"
+echo -e "\n   Sending to 'order' topic:"
 curl -s -X POST "$BASE_URL/send" \
   -H "Content-Type: application/json" \
-  -d '{"id": "123", "timestamp": "2024-01-01T00:00:00Z", "event_type": "BoundedContext1", "payload": {"type": "BoundedContext1Event", "action": "Created", "message": "User login event"}}' | jq '.'
+  -d '{"id": "123", "timestamp": "2024-01-01T00:00:00Z", "event_type": "order", "payload": {"type": "OrderEvent", "action": "Created", "message": "Order created"}}' | jq '.'
 
-echo -e "\n   Sending to 'bounded-context-2' topic:"
+echo -e "\n   Sending to 'logistics' topic:"
 curl -s -X POST "$BASE_URL/send" \
   -H "Content-Type: application/json" \
-  -d '{"id": "124", "timestamp": "2024-01-01T00:00:01Z", "event_type": "BoundedContext2", "payload": {"type": "BoundedContext2Event", "action": "Created", "message": "Application started"}}' | jq '.'
+  -d '{"id": "124", "timestamp": "2024-01-01T00:00:01Z", "event_type": "logistics", "payload": {"type": "LogisticsEvent", "action": "Created", "message": "Shipment created"}}' | jq '.'
 
-echo -e "\n   Sending to 'bounded-context-1' topic (second event):"
+echo -e "\n   Sending to 'order' topic (second event):"
 curl -s -X POST "$BASE_URL/send" \
   -H "Content-Type: application/json" \
-  -d '{"id": "125", "timestamp": "2024-01-01T00:00:02Z", "event_type": "BoundedContext1", "payload": {"type": "BoundedContext1Event", "action": "Updated", "message": "New user registered"}}' | jq '.'
+  -d '{"id": "125", "timestamp": "2024-01-01T00:00:02Z", "event_type": "order", "payload": {"type": "OrderEvent", "action": "Updated", "message": "Order updated"}}' | jq '.'
 
-echo -e "\n   Sending to 'bounded-context-2' topic (second event):"
+echo -e "\n   Sending to 'logistics' topic (second event):"
 curl -s -X POST "$BASE_URL/send" \
   -H "Content-Type: application/json" \
-  -d '{"id": "126", "timestamp": "2024-01-01T00:00:03Z", "event_type": "BoundedContext2", "payload": {"type": "BoundedContext2Event", "action": "Updated", "message": "Test message"}}' | jq '.'
+  -d '{"id": "126", "timestamp": "2024-01-01T00:00:03Z", "event_type": "logistics", "payload": {"type": "LogisticsEvent", "action": "Updated", "message": "Shipment updated"}}' | jq '.'
 
 # Wait a moment for events to be processed
 echo -e "\n3. Waiting for events to be processed..."

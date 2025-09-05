@@ -48,8 +48,8 @@ A Rust application with Redpanda integration featuring multi-topic event streami
 
 The Rust server provides the following endpoints:
 
-- `GET /health` - Health check
 - `POST /send` - Send an event to a specific topic
+- `POST /order` - Checkout order (sends an event)
 
 ### Example Usage
 
@@ -57,20 +57,32 @@ The Rust server provides the following endpoints:
 ```bash
 curl -X POST http://localhost:{{server_port}}/send \
   -H "Content-Type: application/json" \
-  -d '{"id": "123", "timestamp": "2024-01-01T00:00:00Z", "event_type": "BoundedContext1", "payload": {"type": "BoundedContext1Event", "action": "Created", "message": "User login event"}}'
+  -d '{
+    "id": "123",
+    "timestamp": "2024-01-01T00:00:00Z",
+    "event_type": "order",
+    "payload": {"type": "OrderEvent", "action": "Created", "message": "Order created"}
+  }'
 ```
 
-**Health check:**
+**Checkout order (domain-specific endpoint):**
 ```bash
-curl http://localhost:{{server_port}}/health
+curl -X POST http://localhost:{{server_port}}/order \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "456",
+    "timestamp": "2024-01-01T00:00:00Z",
+    "event_type": "order",
+    "payload": {"type": "OrderEvent", "action": "Created", "message": "Checkout initiated"}
+  }'
 ```
 
 ## Default Topics
 
 The application automatically starts continuous consumers for these topics:
 
-- `bounded-context-1`: User and business logic events
-- `bounded-context-2`: Application and system events
+- `order`: Order bounded context
+- `logistics`: Logistics bounded context
 
 ## Access Points
 
@@ -110,8 +122,8 @@ The Rust server is organized into modular components:
 
 The application follows a domain-driven design with bounded contexts:
 
-- **BoundedContext1**: Handles user and business logic events with create/update actions
-- **BoundedContext2**: Handles application and system events with create/update actions
+- **Order**: Handles order-related events (Created/Updated)
+- **Logistics**: Handles logistics-related events (Created/Updated)
 
 Each bounded context has its own topic handler that processes events and can trigger follow-up events.
 

@@ -22,12 +22,12 @@ src/
 │   └── processor.rs     # Event processor and consumer management
 ├── domains/             # Domain-driven design with bounded contexts
 │   ├── mod.rs           # Domains module entry point
-│   ├── bounded_context_1/ # First bounded context
+│   ├── order/           # Order bounded context
 │   │   ├── mod.rs       # Context builder and exports
 │   │   ├── models.rs    # Context-specific models
 │   │   ├── topic_handler.rs # Event processing logic
 │   │   └── api.rs       # Context-specific API
-│   └── bounded_context_2/ # Second bounded context
+│   └── logistics/       # Logistics bounded context
 │       ├── mod.rs       # Context builder and exports
 │       ├── models.rs    # Context-specific models
 │       ├── topic_handler.rs # Event processing logic
@@ -67,12 +67,12 @@ src/
 - Coordinates event consumption across multiple topics
 
 ### `domains/` - Domain-Driven Design
-- **`bounded_context_1/`**: First bounded context with user and business logic
-  - **`topic_handler.rs`**: Event processing logic for bounded context 1
+- **`order/`**: Order domain logic
+  - **`topic_handler.rs`**: Event processing logic for order
   - **`models.rs`**: Context-specific data models
   - **`api.rs`**: Context-specific API endpoints
-- **`bounded_context_2/`**: Second bounded context with application and system logic
-  - **`topic_handler.rs`**: Event processing logic for bounded context 2
+- **`logistics/`**: Logistics domain logic
+  - **`topic_handler.rs`**: Event processing logic for logistics
   - **`models.rs`**: Context-specific data models
   - **`api.rs`**: Context-specific API endpoints
 
@@ -91,8 +91,8 @@ src/
 
 ## Adding New Features
 
-### Adding a New Bounded Context
-1. Create a new directory in `src/domains/` (e.g., `bounded_context_3/`)
+### Adding a New Domain Context
+1. Create a new directory in `src/domains/` (e.g., `payments/`)
 2. Add the context to `src/domains/mod.rs`
 3. Create the context builder, models, topic handler, and API
 4. Add the new event type to `src/shared/models.rs`

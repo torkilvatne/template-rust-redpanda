@@ -22,6 +22,7 @@ When you run the template, you'll be prompted for the following variables:
 
 - **crate_name**: The name of your Rust project (default: `my-redpanda-app`)
 - **server_port**: The port your server will run on (default: `3000`)
+- **use_redpanda**: If you need message queue functionality (default: `true`)
 
 ## What's Included
 
@@ -30,7 +31,7 @@ This template provides:
 - A complete Rust web server using Axum
 - Redpanda/Kafka integration with rdkafka
 - Multi-topic event streaming support
-- Domain-driven design with bounded contexts
+- Domain-driven design with order and logistics contexts
 - Continuous message consumption in the background
 - Docker Compose setup with Redpanda and Redpanda Console
 - Health check and event sending endpoints
@@ -59,14 +60,14 @@ your-project/
 │   ├── events/         # Event processing layer
 │   │   ├── mod.rs      # Events module entry point
 │   │   └── processor.rs # Event processor and consumer management
-│   ├── domains/        # Domain-driven design with bounded contexts
+│   ├── domains/        # Domain-driven design with order and logistics
 │   │   ├── mod.rs      # Domains module entry point
-│   │   ├── bounded_context_1/ # First bounded context
+│   │   ├── order/ # Order context
 │   │   │   ├── mod.rs  # Context builder and exports
 │   │   │   ├── models.rs # Context-specific models
 │   │   │   ├── topic_handler.rs # Event processing logic
 │   │   │   └── api.rs  # Context-specific API
-│   │   └── bounded_context_2/ # Second bounded context
+│   │   └── logistics/ # Logistics context
 │   │       ├── mod.rs  # Context builder and exports
 │   │       ├── models.rs # Context-specific models
 │   │       ├── topic_handler.rs # Event processing logic
@@ -94,8 +95,8 @@ After generating your project:
 
 ## API Endpoints
 
-- `GET /health` - Health check
 - `POST /send` - Send an event to a specific topic
+- `POST /order` - Checkout order (domain-specific action)
 
 ## Architecture
 
@@ -103,7 +104,7 @@ This template follows a clean, modular architecture:
 
 - **API Layer** (`api/`): HTTP handlers and routing logic
 - **Events Layer** (`events/`): Event processing and consumer management
-- **Domains Layer** (`domains/`): Domain-driven design with bounded contexts
+- **Domains Layer** (`domains/`): Domain-driven design with order and logistics
 - **Configuration** (`config/`): Application settings and environment management
 - **Infrastructure** (`infrastructure/`): External service integrations (Redpanda)
 - **Shared** (`shared/`): Common data structures and types
@@ -114,13 +115,13 @@ See `ARCHITECTURE.md` for detailed documentation on the module structure and how
 
 The application automatically starts continuous consumers for these topics:
 
-- `bounded-context-1`: User and business logic events
-- `bounded-context-2`: Application and system events
+- `order`: Order bounded context
+- `logistics`: Logistics bounded context
 
 ## Features
 
 - **Multi-Topic Support**: Send events to different topics for event organization
-- **Domain-Driven Design**: Clean separation of bounded contexts with dedicated event handlers
+- **Domain-Driven Design**: Clean separation of order/logistics contexts with dedicated event handlers
 - **Continuous Consumption**: Background consumers that process events as they arrive
 - **Event-Driven Architecture**: Separate topics for different types of events
 - **Scalable Design**: Each topic can be scaled independently
