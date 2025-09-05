@@ -22,7 +22,6 @@ When you run the template, you'll be prompted for the following variables:
 
 - **crate_name**: The name of your Rust project (default: `my-redpanda-app`)
 - **server_port**: The port your server will run on (default: `3000`)
-- **project_description**: A brief description of your project (default: `A Rust application with Redpanda integration`)
 
 ## What's Included
 

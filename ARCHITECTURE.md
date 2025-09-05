@@ -113,7 +113,6 @@ This template uses the following variables that will be replaced during generati
 
 - `{{crate_name}}`: The name of the generated package
 - `{{server_port}}`: The default server port
-- `{{project_description}}`: The description of the project
 
 
 

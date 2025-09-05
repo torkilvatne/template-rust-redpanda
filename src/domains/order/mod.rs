@@ -1,11 +1,13 @@
+{% if use_redpanda %}
 use crate::shared::{Topic, EventHandler};
-// use std::sync::Arc; // no longer needed
 
 pub mod topic_handler;
 pub mod event_handlers;
+{% endif %}
 pub mod models;
 pub mod api;
 
+{% if use_redpanda %}
 use topic_handler::*;
 
 pub struct OrderEventContextBuilder {}
@@ -20,3 +22,4 @@ impl OrderEventContextBuilder {
         handler.get_topic_handlers()
     }
 }
+{% endif %}

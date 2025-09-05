@@ -1,8 +1,13 @@
+{% if use_redpanda %}
 use serde::{Deserialize, Serialize};
+{% endif %}
+{% if use_redpanda == false %}
+use serde::{Serialize};
+{% endif %}
+{% if use_redpanda %}
+use chrono::{DateTime, Utc};
 use std::sync::Arc;
 use std::collections::HashMap;
-use chrono::{DateTime, Utc};
-
 // Topics
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum Topic {
@@ -95,7 +100,7 @@ impl EventHandlerRegistry {
         self.handlers.get(event_type)
     }
 }
-
+{% endif %}
 // API
 
 #[derive(Serialize, Debug)]

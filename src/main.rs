@@ -1,17 +1,26 @@
 use std::net::SocketAddr;
 use std::str::FromStr;
+{% if use_redpanda %}
 use tracing::{debug, info, error};
+{% endif %}
+{% if use_redpanda == false %}
+use tracing::{debug, info};
+{% endif %}
 use config::Config;
 
 mod api;
 mod config;
 mod domains;
+{% if use_redpanda %}
 mod events;
 mod infrastructure;
+{% endif %}
 mod shared;
 
 use api::routes::create_router;
+{% if use_redpanda %}
 use events::processor::EventProcessor;
+{% endif %}
 
 #[tokio::main]
 async fn main() {
@@ -24,6 +33,7 @@ async fn main() {
     let config = Config::from_env();
     debug!("Configuration loaded: {:?}", config);
 
+    {% if use_redpanda %}
     // Initialize event processor with shared Redpanda client
     let event_processor = EventProcessor::new();
     
@@ -32,6 +42,7 @@ async fn main() {
         error!("Failed to start event consumers: {}", e);
         std::process::exit(1);
     }
+    {% endif %}
 
     // Create router
     let app = create_router();

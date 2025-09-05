@@ -14,7 +14,21 @@ ignore = [
 
 [placeholders]
 server_port = { type = "string", prompt = "What port should the server run on?", default = "3000" }
-project_description = { type = "string", prompt = "Brief description of your project", default = "A Rust application with Redpanda integration" }
+
+[placeholders.use_redpanda]
+type = "bool"
+prompt = "Do you want to use Redpanda?"
+default = true
+
+[conditional.'use_redpanda == false']
+ignore = [
+    "src/infrastructure",
+    "src/events",
+    "src/domains/order/event_handlers.rs",
+    "src/domains/order/topic_handler.rs",
+    "src/domains/logistics/event_handlers.rs",
+    "src/domains/logistics/topic_handler.rs",
+]
 
 [binary]
 extensions = [
